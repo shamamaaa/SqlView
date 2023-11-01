@@ -88,4 +88,83 @@ JOIN Artists AS a ON ma.ArtistId = a.Id
 
 Select * from MusicView
 
+--PROCEDURE, FUNCTION TASK
+
+CREATE PROCEDURE usp_CreateMusic @name VARCHAR(50), @duration INT, @catid INT
+AS
+BEGIN
+INSERT INTO Musics (Name,Duration,CategoryId) VALUES(
+    @name,@duration,@catid
+)
+END
+
+EXEC usp_CreateMusic 'Sinanay',270,3
+
+---------------------------------------------------------------
+
+CREATE PROCEDURE usp_CreateUser @name VARCHAR(50), @surname VARCHAR(50)='XXX', @username VARCHAR(50), @password VARCHAR(128), @gender VARCHAR(6)
+AS
+BEGIN
+INSERT INTO Users (Name,Surname,Username, [Password],Gender) VALUES(
+@name, @surname , @username , @password , @gender)
+END
+
+EXEC usp_CreateUser 'Adil', 'Nasirli','adilnasirli','adil2004', 'male'
+
+---------------------------------------------------------------
+
+CREATE PROCEDURE usp_CreateCategory @name VARCHAR(50)
+AS
+BEGIN
+INSERT INTO Categories (Name) VALUES(
+    @name
+)
+END
+
+EXEC usp_CreateCategory 'Jazz'
+
+---------------------------------------------------------------
+
+ALTER TABLE Musics ADD IsDeleted BIT DEFAULT 0
+
+CREATE TRIGGER DeleteMusic
+ON Musics
+INSTEAD OF DELETE 
+AS
+DECLARE @result BIT
+DECLARE @id INT
+SELECT @result=IsDeleted, @id=deleted.Id FROM deleted
+IF(@result=0)
+    BEGIN
+     UPDATE Musics SET IsDeleted=1 WHERE Id=@id
+    END
+ELSE
+    BEGIN
+     DELETE FROM Musics WHERE Id=@id
+    END
+
+
+DELETE FROM Musics WHERE Id=1
+
+---------------------------------------------------------------
+
+CREATE VIEW ShowUser
+AS
+SELECT u.Id, u.Username,m.Name AS [Mahni adi],a.Name AS [Mugenni] FROM Playlist p
+JOIN Users u ON p.UserId=u.Id
+JOIN Musics m ON p.MusicId=m.Id
+JOIN ArtistMusic ma ON ma.MusicId=m.Id
+JOIN Artists a ON ma.ArtistId=a.Id
+
+
+CREATE FUNCTION GetArtistByUser(@userid INT)
+RETURNS INT
+    BEGIN
+     DECLARE @artistcount INT;
+     SELECT @artistcount=COUNT(Mugenni) FROM ShowUser
+     WHERE @userid=Id
+     RETURN @artistcount
+    END
+
+SELECT dbo.GetArtistByUser(1)
 
